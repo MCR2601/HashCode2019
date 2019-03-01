@@ -46,8 +46,9 @@ namespace HashCode2019_Reiterer
 
             debugger.Activate();
 
-            gen.RandomSearch();
+            //gen.RandomSearch();
             //gen.RandomSequence();
+            gen.RandomWebbing();
 
             debugger.Abort();
             System.Threading.Thread.Sleep(2000);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -142,6 +143,94 @@ namespace HashCode2019_Reiterer
                 }
             }
             BestSoFar = new KeyValuePair<SlideShow, int>(new SlideShow(Slides),0);
+        }
+        public void RandomWebbing()
+        {
+            int connections = 20;
+            // Build the first network
+            Debug.WriteLine("Start Random Webbing");
+            Debug.WriteLine("Generate All Nodes");
+
+            List<WebNode> AllNodes = Images.Select(x => new WebNode(x)).ToList();
+
+            Debug.WriteLine("Generate all connectetions");
+            AllNodes.ForEach(x => x.TargetNode = AllNodes.GetRandom(20));
+            Debug.WriteLine("Connection Generation Done");
+
+            // get a random Node
+            WebNode node = AllNodes.GetRandom(1).First();
+            node.Used = true;
+            Debug.WriteLine("Start Node Determined");
+
+            List<WebNode> CurrentPage = new List<WebNode>();
+            CurrentPage.Add(node);
+            AllNodes.Remove(node);
+
+            Slide LastSlide;
+            WebNode LastNode = node;
+            List<Slide> Slides = new List<Slide>();
+
+            if (node.Size == 1)
+            {
+                WebNode theOther = AllNodes.Where(x => x.Size == 1).ToList().GetRandom(1).FirstOrDefault();
+                if (theOther != null)
+                {
+                    theOther.Used = true;
+                    CurrentPage.Add(theOther);
+                    AllNodes.Remove(theOther);
+                    LastNode = theOther;
+                }
+            }
+
+            Slide firstSlide = new Slide(CurrentPage.Select(x=>x.image).ToList());
+            LastSlide = firstSlide;
+            CurrentPage = new List<WebNode>();
+
+
+            bool NoFit = false;
+
+            while (AllNodes.Count>0)
+            {
+                ImagesRemaining.value = AllNodes.Count();
+
+                if (NoFit || CurrentPage.Sum(x=>x.Size)==2)
+                {
+                    // we can end the slide
+                    Slide next = new Slide(CurrentPage.Select(x=>x.image).ToList());
+                    foreach (var item in CurrentPage)
+                    {
+                        AllNodes.Remove(item);
+                    }
+                    NoFit = false;
+                    Slides.Add(next);
+                    LastSlide = next;
+                    CurrentPage = new List<WebNode>();
+                }
+                else
+                {
+                    // try to fit somebody else in
+                    WebNode n = LastNode.GetNextImage(2 - CurrentPage.Sum(x => x.Size), LastSlide, CurrentPage.Select(c => c.image).ToList());
+                    
+                    if (n != null)
+                    {
+                        // there is something fitting
+                        CurrentPage.Add(n);
+                        AllNodes.Remove(n);
+                        n.Used = true;
+                    }
+                    else
+                    {
+                        // there is nothing remaining, so we flag a NoFit
+                        NoFit = true;
+                    }
+                }
+            }
+
+
+            BestSoFar = new KeyValuePair<SlideShow, int>(new SlideShow(Slides), 0);
+
+
+
         }
 
         public void RandomSequence()

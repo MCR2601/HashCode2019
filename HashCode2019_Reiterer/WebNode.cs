@@ -9,7 +9,7 @@ namespace HashCode2019_Reiterer
     class WebNode
     {
         public Image image;
-        public int Size => image.Size;
+        public int Size =>  image.Size;
 
         public bool Used;
 

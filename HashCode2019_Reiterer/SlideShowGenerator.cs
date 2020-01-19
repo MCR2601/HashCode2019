@@ -154,7 +154,9 @@ namespace HashCode2019_Reiterer
             List<WebNode> AllNodes = Images.Select(x => new WebNode(x)).ToList();
 
             Debug.WriteLine("Generate all connectetions");
-            AllNodes.ForEach(x => x.TargetNode = AllNodes.GetRandom(20));
+            AllNodes.ForEach(x => x.TargetNode = AllNodes.GetRandom(connections));
+            List<WebNode> allVert = AllNodes.Where(x => x.Size == 1).ToList();
+            allVert.ForEach(y => y.TargetNode.AddRange(allVert.GetRandom(connections / 2)));
             Debug.WriteLine("Connection Generation Done");
 
             // get a random Node
@@ -183,31 +185,51 @@ namespace HashCode2019_Reiterer
             }
 
             Slide firstSlide = new Slide(CurrentPage.Select(x=>x.image).ToList());
+            Slides.Add(firstSlide);
             LastSlide = firstSlide;
             CurrentPage = new List<WebNode>();
 
 
             bool NoFit = false;
 
-            while (AllNodes.Count>0)
+            while (AllNodes.Count>0 )
             {
                 ImagesRemaining.value = AllNodes.Count();
 
                 if (NoFit || CurrentPage.Sum(x=>x.Size)==2)
                 {
-                    // we can end the slide
-                    Slide next = new Slide(CurrentPage.Select(x=>x.image).ToList());
-                    foreach (var item in CurrentPage)
+                    if (CurrentPage.Count()>0)
                     {
-                        AllNodes.Remove(item);
+                        // we can end the slide
+                        Slide next = new Slide(CurrentPage.Select(x => x.image).ToList());
+                        foreach (var item in CurrentPage)
+                        {
+                            AllNodes.Remove(item);
+                        }
+                        Slides.Add(next);
+                        LastSlide = next;
+
                     }
+
                     NoFit = false;
-                    Slides.Add(next);
-                    LastSlide = next;
+                    
                     CurrentPage = new List<WebNode>();
                 }
                 else
                 {
+                    // check if all the connections are used. if so clear all remaining connections and add up to 20 new
+                    if (LastNode.TargetNode.All(x=>x.Used))
+                    {
+                        int connectionCount = Math.Min(connections, AllNodes.Count());
+                        // remove all connections
+                        AllNodes.ForEach(x => x.TargetNode = AllNodes.GetRandom(connectionCount));
+                        LastNode.TargetNode = AllNodes.GetRandom(connectionCount);
+
+                        allVert = AllNodes.Where(x => x.Size == 1).ToList();
+                        allVert.ForEach(y => y.TargetNode.AddRange(allVert.GetRandom(connections / 2)));
+
+                    }
+
                     // try to fit somebody else in
                     WebNode n = LastNode.GetNextImage(2 - CurrentPage.Sum(x => x.Size), LastSlide, CurrentPage.Select(c => c.image).ToList());
                     
@@ -217,6 +239,7 @@ namespace HashCode2019_Reiterer
                         CurrentPage.Add(n);
                         AllNodes.Remove(n);
                         n.Used = true;
+                        LastNode = n;
                     }
                     else
                     {
@@ -225,7 +248,13 @@ namespace HashCode2019_Reiterer
                     }
                 }
             }
-
+            Slide last = new Slide(CurrentPage.Select(x => x.image).ToList());
+            foreach (var item in CurrentPage)
+            {
+                AllNodes.Remove(item);
+            }
+            Slides.Add(last);
+            LastSlide = last;
 
             BestSoFar = new KeyValuePair<SlideShow, int>(new SlideShow(Slides), 0);
 

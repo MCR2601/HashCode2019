@@ -10,7 +10,7 @@ namespace HashCode2019_Reiterer
 {
     class Program
     {
-        public static string Input = "b_lovely_landscapes.txt";
+        public static string Input = "c_memorable_moments.txt";
 
         static void Main(string[] args)
         {

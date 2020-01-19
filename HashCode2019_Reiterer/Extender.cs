@@ -20,7 +20,7 @@ namespace HashCode2019_Reiterer
                 if (!indexes.Contains(i))
                 {
                     indexes.Add(next);
-                    searched.Add(list[i]);
+                    searched.Add(list[next]);
                 }
             }
             return searched;
